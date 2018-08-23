@@ -1,0 +1,14 @@
+[Unit]
+Description=apache kafka service
+Before=
+After=network.target
+
+[Service]
+User=kafka
+Group=kafka
+Environment=JAVA_HOME={{ java_path }} CHDIR={{ kafka.configuration.data_dir }} LOG_DIR={{ kafka.configuration.log_path }}/log
+ExecStart={{ kafka_unarchive_prefix }}/{{ kafka_package_name }}/bin/kafka-server-start.sh {{ kafka_unarchive_prefix }}/{{ kafka_package_name }}/config/server.properties
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

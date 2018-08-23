@@ -1,0 +1,38 @@
+- name: create kafka user
+  user: name=kafka
+
+- name: create install dir
+  file: dest={{ kafka_unarchive_prefix }} state=directory owner=kafka group=kafka mode=0755
+
+- name: create log dir 
+  file: dest={{ kafka.configuration.log_dirs }} state=directory owner=kafka group=kafka mode=0755
+
+- name: create log path
+  file: dest={{ kafka.configuration.log_path }} state=directory owner=kafka group=kafka mode=0755
+
+- name: download kafka archive 
+  get_url: url=http://apache-mirror.rbc.ru/pub/apache/kafka/{{ kafka_version }}/{{ kafka_package_name }}.tgz dest=/tmp/
+   
+- name: unarchive kafka
+  unarchive: src=/tmp/{{ kafka_package_name }}.tgz dest={{ kafka_unarchive_prefix }} owner=kafka group=kafka mode=0755 remote_src=yes
+
+- name: create /etc/kafka
+  file: dest=/etc/kafka state=directory owner=root group=root mode=0644
+
+- name: create /etc/kafka/bin
+  file: dest=/etc/kafka/bin state=directory owner=root group=root mode=0644
+
+- name: create /etc/kafka/conf
+  file: dest=/etc/kafka/conf state=directory owner=root group=root mode=0644
+
+- name: copy template systemd
+  template: src=kafka.service.j2 dest=/etc/systemd/system/kafka.service owner=root group=root mode=0644
+  notify: reload systemd
+
+- name: copy conf file
+  template: src=kafka.conf.j2 dest={{ kafka_unarchive_prefix }}/{{ kafka_package_name }}/config/server.properties force=yes
+
+- name: restart kafka
+  service: name=kafka.service state=restarted enabled=yes
+  
+  
